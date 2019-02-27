@@ -7,14 +7,14 @@ import java.io.*;
 
 class DataItem {
 
-   private String iData;
+   private int iData;
 
-   public DataItem(String ss){
-      iData = ss;
+   public DataItem(int ii){
+      iData = ii;
    }
 
 
-   public String getKey() {
+   public int getKey() {
       return iData;
    }
 }
@@ -25,11 +25,10 @@ class HashTable {
    private DataItem[] hashArray;
    private int arraySize;
    private DataItem nonItem;        // for deleted items
-
    public HashTable(int size) {
       arraySize = size;
       hashArray = new DataItem[arraySize];
-      nonItem = new DataItem("-1");   // deleted item key is -1
+      nonItem = new DataItem(-1);   // deleted item key is -1
    }
 
 
@@ -46,22 +45,32 @@ class HashTable {
 //Take string
    //
 
-   public int hashFunc(String key) {
-      char[] temp = key.toCharArray();
-      int bigNumber = 0;
-      for(int i = 0; i < key.length()-1; i++){
-         bigNumber += (temp[i] - 96) * (int) Math.pow(26, key.length() - i);
+   public int hashFunc(int key) {
+      //folding size of two
+      int temp = 0;
+      int nextGroup = key;
+
+      while(nextGroup%10 !=0){
+
+         temp += nextGroup%1000;
+
+         System.out.println("temp: " + temp);
+
+         nextGroup /= 1000;
+         System.out.println("nextGroup: " + nextGroup);
+
       }
-      System.out.println(bigNumber);
-      return bigNumber % arraySize;       // hash function
+      System.out.println(temp);
+
+      return temp % arraySize;       // hash function
    }
 //change to linear probe
    public void insert(DataItem item){
-      String key = item.getKey();
+      int key = item.getKey();
       int hashVal = hashFunc(key);
       System.out.println(hashVal);
 
-      while(hashArray[hashVal] != null && !hashArray[hashVal].getKey().equals("-1")) {
+      while(hashArray[hashVal] != null && hashArray[hashVal].getKey() != -1) {
 
          hashVal += 1;
          hashVal %= arraySize;      // wrap around if necessary (hint if hash val size of index, the hashVal mod arraysize = 0
@@ -74,11 +83,11 @@ class HashTable {
 
 
 
-   public DataItem delete(String key) {
+   public DataItem delete(int key) {
       int hashVal = hashFunc(key);
 
       while(hashArray[hashVal] != null) {
-         if(hashArray[hashVal].getKey().equals(key)) {
+         if(hashArray[hashVal].getKey() == key ) {
             DataItem temp = hashArray[hashVal]; // save item
             hashArray[hashVal] = nonItem;       // delete item
             return temp;                        // return item
@@ -90,11 +99,11 @@ class HashTable {
       }
 
 
-   public DataItem find(String key){
+   public DataItem find(int key){
       int hashVal = hashFunc(key);  // hash the key
 
       while(hashArray[hashVal] != null){
-         if(hashArray[hashVal].getKey().equals(key))
+         if(hashArray[hashVal].getKey()==key)
             return hashArray[hashVal];   // yes, return item
          ++hashVal;                 // go to next cell
          hashVal %= arraySize;      // wraparound if necessary
@@ -107,12 +116,22 @@ class HashTableApp {
    public static void main(String[] args) throws IOException {
       DataItem aDataItem;
       int size;
-      String aKey;
+      int primeSize;
+      int aKey;
                                     // get sizes
       System.out.print("Enter size of hash table: ");
       size = getInt();
-                                    // make table
-      HashTable theHashTable = new HashTable(size);
+      //Make the table size a prime number (next prime after given size)
+      if(Primes.isPrime(size)){
+         primeSize = size;
+      }else{
+         primeSize = Primes.nextPrime(size);
+         System.out.println("Increased table size to first prime over " +
+             size + ": " + primeSize);
+      }
+
+      // make table
+      HashTable theHashTable = new HashTable(primeSize);
 
 
       while(true){
@@ -125,18 +144,18 @@ class HashTableApp {
                break;
             case 'i':
             System.out.print("Enter key value to insert: ");
-               aKey = getString();
+               aKey = getInt();
                aDataItem = new DataItem(aKey);
                theHashTable.insert(aDataItem);
                break;
             case 'd':
                System.out.print("Enter key value to delete: ");
-               aKey = getString();
+               aKey = getInt();
                theHashTable.delete(aKey);
                break;
             case 'f':
                System.out.print("Enter key value to find: ");
-               aKey = getString();
+               aKey = getInt();
                aDataItem = theHashTable.find(aKey);
                if(aDataItem != null) {
                   System.out.println("Found " + aKey);
@@ -165,6 +184,7 @@ class HashTableApp {
 
    public static int getInt() throws IOException {
       String s = getString();
+
       return Integer.parseInt(s);
    }
 
