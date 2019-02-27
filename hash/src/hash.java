@@ -47,22 +47,22 @@ class HashTable {
 
    public int hashFunc(int key) {
       //folding size of two
-      int temp = 0;
+      int groupSum = 0;
       int nextGroup = key;
 
       while(nextGroup%10 !=0){
 
-         temp += nextGroup%1000;
+         groupSum += nextGroup%1000;
 
-         System.out.println("temp: " + temp);
+         System.out.println("groupSum: " + groupSum);
 
          nextGroup /= 1000;
          System.out.println("nextGroup: " + nextGroup);
 
       }
-      System.out.println(temp);
+      System.out.println(groupSum);
 
-      return temp % arraySize;       // hash function
+      return groupSum % arraySize;       // hash function
    }
 //change to linear probe
    public void insert(DataItem item){
