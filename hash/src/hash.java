@@ -28,7 +28,7 @@ class HashTable {
    public HashTable(int size) {
       arraySize = size;
       hashArray = new DataItem[arraySize];
-      nonItem = new DataItem(-1);   // deleted item key is -1
+      nonItem = new DataItem(-1);
    }
 
 
@@ -51,11 +51,10 @@ class HashTable {
       int nextGroup = key;
 
       while(nextGroup%10 !=0){
-
          groupSum += nextGroup%1000;
 
          System.out.println("groupSum: " + groupSum);
-
+         //divisor determines the group size
          nextGroup /= 1000;
          System.out.println("nextGroup: " + nextGroup);
 
@@ -187,5 +186,6 @@ class HashTableApp {
 
       return Integer.parseInt(s);
    }
+
 
 }
