@@ -1,6 +1,9 @@
 // hash.java
 // updating this from linear probing to quadratic probing
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 //the data, or in essence the key that will be hashed and stored.
@@ -24,7 +27,13 @@ class DataItem {
 class HashTable {
    private DataItem[] hashArray;
    private int arraySize;
-   private DataItem nonItem;        // for deleted items
+   private DataItem nonItem; //deleted items
+   private AtomicInteger elementCount = new AtomicInteger(0);
+   private final int GROUP_SIZE = 1000; //1000 = group size of 3  2222 mod 1000 = 222
+   private final float MAX_LOAD = .5f;
+
+
+
    public HashTable(int size) {
       arraySize = size;
       hashArray = new DataItem[arraySize];
@@ -46,28 +55,34 @@ class HashTable {
    //
 
    public int hashFunc(int key) {
-      //folding size of two
+      //folding size of three
       int groupSum = 0;
       int nextGroup = key;
 
-      while(nextGroup%10 !=0){
-         groupSum += nextGroup%1000;
+      while(nextGroup % 10 !=0){
+         groupSum += nextGroup % GROUP_SIZE;
 
          System.out.println("groupSum: " + groupSum);
          //divisor determines the group size
-         nextGroup /= 1000;
+         nextGroup /= GROUP_SIZE;
          System.out.println("nextGroup: " + nextGroup);
 
       }
       System.out.println(groupSum);
 
+
       return groupSum % arraySize;       // hash function
    }
-//change to linear probe
+   //linear probe for collisions
    public void insert(DataItem item){
+      elementCount.incrementAndGet();
       int key = item.getKey();
       int hashVal = hashFunc(key);
+
       System.out.println(hashVal);
+      if(getLoad() > MAX_LOAD){
+         rehash();
+      }
 
       while(hashArray[hashVal] != null && hashArray[hashVal].getKey() != -1) {
 
@@ -78,9 +93,25 @@ class HashTable {
       }
 
       hashArray[hashVal] = item;
+
    }
-
-
+   //we need more room in the array
+   private void rehash(){
+      elementCount.getAndSet(0);
+      //Need the elements in the same index
+      //also, do not want a reference to the old object
+      DataItem[] temp = new DataItem[arraySize];
+      for(int i = 0; i<hashArray.length; i++){
+         temp[i] = hashArray[i];
+      }
+      arraySize = Primes.nextPrime(arraySize * 2);
+      hashArray = new DataItem[arraySize];
+      for(int j = 0; j< temp.length; j++){
+         if(temp[j] != nonItem && temp[j] != null){
+            insert(temp[j]);
+         }
+      }
+   }
 
    public DataItem delete(int key) {
       int hashVal = hashFunc(key);
@@ -94,6 +125,7 @@ class HashTable {
          ++hashVal;
          hashVal %= arraySize;
          }
+      elementCount.decrementAndGet();
       return null;
       }
 
@@ -109,6 +141,13 @@ class HashTable {
       }
 
       return null;                  // can't find item
+   }
+
+
+   private double getLoad(){
+      System.out.println("LOAD: " + (elementCount.get()* 1.0f)/(arraySize ));
+      System.out.println("ElementCount: " + elementCount);
+      return ((elementCount.get()* 1.0f/(arraySize )));
    }
 }
 class HashTableApp {
@@ -129,7 +168,6 @@ class HashTableApp {
              size + ": " + primeSize);
       }
 
-      // make table
       HashTable theHashTable = new HashTable(primeSize);
 
 
@@ -186,6 +224,7 @@ class HashTableApp {
 
       return Integer.parseInt(s);
    }
+
 
 
 }
